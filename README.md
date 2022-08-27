@@ -19,5 +19,5 @@ The following are reserved characters:
 ')'  - open bracket  
   
 If these characters are to be used in the regex, they need to be escaped using the escape character.
-'◦' should not be used to explicitly show concatenation; the regex ab is automatically converted to a◦b
+'◦' should not be used to explicitly show concatenation; the regex ab is automatically converted to a◦b by the tool.
 Thus '◦' should be used only after escaping.
