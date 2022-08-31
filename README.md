@@ -1,10 +1,21 @@
 # Lexical-Analyser
-An open-source tool which constructs a DFA from the given regular expression
+An open-source tool which constructs various FSMs from the given regular expression and tests if input strings match.
+
+## Use:
+Download and run the .jar file.
+Java version 17 or above is required.
 
 ## Operations supprted:
 1) concatenation
 2) union
 3) Kleene closure
+
+## Output:
+1) syntax tree of regeular expression
+2) epsilon-NFA
+3) nullable, firstpos, lastpos and followpos
+4) NFA
+5) DFA
 
 ## regex syntax:
 The following are reserved characters:  
