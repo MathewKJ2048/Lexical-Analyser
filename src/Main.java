@@ -1,50 +1,56 @@
+import finite_state_machine.FSM;
+
 import java.util.Scanner;
 
 public class Main
 {
     public static void main(String[] args)
     {
-
+        String separator = "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
         try
         {
             Scanner sc = new Scanner(System.in);
-            while(true)
-            {
+
                 System.out.println("Enter regex:");
                 String regex = sc.nextLine();
-                if(regex.equals("exit"))break;
-                //System.out.println("Dot inserted:"+Syntax_Tree.insert_dots(sc.next()));
-                System.out.println(new Node(Syntax_Tree.get_syntax_tree(regex)).contents());}
+                System.out.println(separator);
+
+                Node tree = new Node(Syntax_Tree.get_syntax_tree(regex));
+                System.out.println("Syntax tree:"+tree.contents());
+                System.out.println(separator);
+
+                System.out.println("Epsilon_NFA:");
+                Epsilon_NFA_generator.get_epsilon_NFA(tree).print();
+                System.out.println(separator);
+
+                NFA_generator.Positions comp_tree = NFA_generator.compute_tree(tree);
+                System.out.println("Computed values of firstpos, lastpos, nullable and followpos:");
+                NFA_generator.print_wrapped_tree(comp_tree);
+                System.out.println(separator);
+
+                System.out.println("NFA:");
+                FSM nfa = NFA_generator.generate_NFA(comp_tree);
+                nfa.print();
+                System.out.println(separator);
+
+                System.out.println("DFA:");
+                FSM dfa = DFA.generate_DFA(nfa);
+                dfa.print();
+                System.out.println(separator);
+
+                System.out.println("Regex: "+regex);
+                System.out.println("Enter inputs (Enter exit to quit) :");
+                while(true)
+                {
+                    String in = sc.nextLine();
+                    if(in.equals("exit"))break;
+                    System.out.println(DFA.simulate_DFA(dfa,in)?"Accept":"Reject");
+                }
+
         }
         catch (Exception e)
         {
             e.printStackTrace();
         }
-    }
-    public static void syntax_tree_test()
-    {
-        Scanner sc  = new Scanner(System.in);
-        while(true)
-        {
-            System.out.println("Enter regex:");
-            String regex = sc.next();
-            if(regex.equals("quit"))break;
-            regex = Syntax_Tree.insert_dots(regex);
-            System.out.println("Explicit Regex:"+regex);
-            Syntax_Tree l = new Syntax_Tree();
-            for(int i=0;i<regex.length();i++)
-            {
-                char d = regex.charAt(i);
-                if(Syntax_Tree.is_operator(d))l.add_operator(d);
-                else l.add_character(d);
-                System.out.println("----------------------------------------------------");
-                System.out.print("top of operator stack is: "+(l.is_operator_stack_empty()?"":l.get_top_of_operator_stack()));
-                System.out.println("top of tree stack is: "+(l.is_tree_stack_empty()?"":new Node(l.get_top_of_tree_stack()).contents()));
-            }
-            System.out.println("finished tree:");
-            l.finish();
-            System.out.println(new Node(l.get_top_of_tree_stack()).contents());
-        }
-        System.out.println("test complete");
     }
 }

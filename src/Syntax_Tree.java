@@ -2,16 +2,16 @@ import java.util.Stack;
 
 public class Syntax_Tree
 {
-    private Stack<Node> tree_stack = new Stack<Node>();
-    private Stack<Character> operator_stack = new Stack<Character>();
-    public static String insert_dots(String regex)
+    private final Stack<Node> tree_stack = new Stack<Node>();
+    private final Stack<Character> operator_stack = new Stack<Character>();
+    public static String insert_concat(String regex)
     {
         StringBuilder r = new StringBuilder();
         for(int i=0;i<regex.length()-1;i++)
         {
             char p = regex.charAt(i);
             char n = regex.charAt(i+1);
-            if(p=='\\') // n has to be a character
+            if(p==Syntax.BACKSLASH) // n has to be a character
             {
                 r.append(p);
                 if(i+2<regex.length())
@@ -20,7 +20,7 @@ public class Syntax_Tree
                     r.append(p);
                     n = regex.charAt(i+2);
                     // now p has to be a character
-                    if(!is_operator(n) || n=='(')r.append('.');
+                    if(!Syntax.is_operator(n) || n==Syntax.OPEN_BRACKET)r.append(Syntax.CONCAT);
                     i++;
                     continue;
                 }
@@ -34,16 +34,16 @@ public class Syntax_Tree
             b( -> b.(
             )( -> ).(
             */
-            if(is_operator(p))
+            if(Syntax.is_operator(p))
             {
-                if(p=='*' || p==')')
+                if(p==Syntax.KLEENE || p==Syntax.CLOSE_BRACKET)
                 {
-                    if(!is_operator(n) || n=='(')r.append('.');
+                    if(!Syntax.is_operator(n) || n==Syntax.OPEN_BRACKET)r.append(Syntax.CONCAT);
                 }
             }
             else
             {
-                if(!is_operator(n) || n=='(')r.append('.');
+                if(!Syntax.is_operator(n) || n==Syntax.OPEN_BRACKET)r.append(Syntax.CONCAT);
             }
         }
         r.append(regex.charAt(regex.length()-1));
@@ -69,26 +69,12 @@ public class Syntax_Tree
     {
         return tree_stack.peek();
     }
-    public static int get_priority(char ch)
+    
+    public void add_character(char ch, boolean is_escape)
     {
-        if(ch=='*')return 3;
-        else if(ch=='.')return 2;
-        else if(ch=='|')return 1;
-        else return -1;
-    }
-    public static boolean is_operator(char ch)
-    {
-        return ch=='('||ch==')'||ch=='*'||ch=='|'||ch=='.';
-    }
-    public static int get_number(char ch)
-    {
-        if(ch=='*')return 1;
-        else if(ch=='|'||ch=='.')return 2;
-        return -1;
-    }
-    public void add_character(char ch)
-    {
-        tree_stack.push(new Node(ch));
+        Node x = new Node(ch);
+        x.is_escaped = is_escape;
+        tree_stack.push(x);
     }
     public void add_operator(char op)
     {
@@ -98,18 +84,18 @@ public class Syntax_Tree
             return;
         }
         char top = operator_stack.peek();
-        if(op==')')
+        if(op==Syntax.CLOSE_BRACKET)
         {
-            while(operator_stack.peek()!='(')pop_operator();
+            while(operator_stack.peek()!=Syntax.OPEN_BRACKET)pop_operator();
             operator_stack.pop();
         }
-        else if(op == '(' || get_priority(op)>=get_priority(top))
+        else if(op == Syntax.OPEN_BRACKET || Syntax.get_priority(op)>=Syntax.get_priority(top))
         {
             operator_stack.push(op);
         }
         else
         {
-            while(!operator_stack.empty()&&get_priority(op)<get_priority(operator_stack.peek()))pop_operator();
+            while(!operator_stack.empty()&&Syntax.get_priority(op)<Syntax.get_priority(operator_stack.peek()))pop_operator();
             operator_stack.push(op);
         }
     }
@@ -118,14 +104,14 @@ public class Syntax_Tree
         Node operator = new Node(operator_stack.peek());
         //System.out.println(operator.value+"has been popped");
         operator_stack.pop();
-        if(operator.value == '*')
+        if(operator.value == Syntax.KLEENE)
         {
             Node tree = new Node(tree_stack.peek());
             tree_stack.pop();
             operator.left = tree;
             tree_stack.push(operator);
         }
-        else if(operator.value == '|' || operator.value == '.')
+        else if(operator.value == Syntax.UNION || operator.value == Syntax.CONCAT)
         {
             Node tree_right = new Node(tree_stack.peek());
             tree_stack.pop();
@@ -143,20 +129,20 @@ public class Syntax_Tree
     public static Node get_syntax_tree(String regex) throws Exception
     {
         Syntax_Tree s = new Syntax_Tree();
-        regex = insert_dots(regex);
+        regex = insert_concat(regex);
         for(int i=0;i<regex.length();i++)
         {
             char d = regex.charAt(i);
-            if(d=='\\')
+            if(d==Syntax.BACKSLASH)
             {
                 i++;
                 try{d = regex.charAt(i);}catch(Exception e){throw new Exception("Escape syntax is incorrect");}
-                s.add_character(d);
+                s.add_character(d, true);
             }
             else
             {
-                if(is_operator(d))s.add_operator(d);
-                else s.add_character(d);
+                if(Syntax.is_operator(d))s.add_operator(d);
+                else s.add_character(d, false);
             }
         }
         s.finish();
