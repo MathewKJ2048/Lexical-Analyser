@@ -12,12 +12,14 @@ The following are reserved characters:
 '|'  - union  
 '◦'  - concatenation  
 '\'  - escape character  
-'.'  - arbitrary character  
+'.'  - any character not found in the alphabet
 'e'  - null string (epsilon)  
 'p'  - empty language (phi)  
 '('  - close bracket  
-')'  - open bracket  
+')'  - open bracket
+'#'  - end of input
   
 If these characters are to be used in the regex, they need to be escaped using the escape character.
 '◦' should not be used to explicitly show concatenation; the regex ab is automatically converted to a◦b by the tool.
 Thus '◦' should be used only after escaping.
+Similarly, '#' should be used only after escaping.
